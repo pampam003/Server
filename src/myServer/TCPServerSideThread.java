@@ -53,7 +53,7 @@ public class TCPServerSideThread implements Runnable {
 				
 				Class.forName("com.mysql.jdbc.Driver");
 				Connection con = DriverManager
-						.getConnection("jdbc:mysql://localhost/gmapserver?"
+						.getConnection("jdbc:mysql://localhost:3307/gmapserver?"
 								+ "user=root&password=root");
 				PreparedStatement prepSt = con.prepareStatement("INSERT INTO infopoints"
 						+ " (clientId, name, description, latitude, longitude, time) " +
