@@ -38,6 +38,8 @@ public class TCPServerSideThread implements Runnable {
 
 		try {
 
+			System.out.println("ServerThreadStarted");
+			
 			// receive requestID
 			String messageType = in.readLine();
 			System.out.println("message from android   "
@@ -58,7 +60,7 @@ public class TCPServerSideThread implements Runnable {
 
 				Class.forName("com.mysql.jdbc.Driver");
 				Connection con = DriverManager
-						.getConnection("jdbc:mysql://localhost/gmapserver?"
+						.getConnection("jdbc:mysql://localhost:3306/gmapserver?"
 								+ "user=root&password=root");
 				PreparedStatement prepSt = con
 						.prepareStatement("INSERT INTO infopoints"
