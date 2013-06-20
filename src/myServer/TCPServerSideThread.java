@@ -16,6 +16,8 @@ import java.sql.ResultSet;
 
 public class TCPServerSideThread implements Runnable {
 
+	private static final String PATH = "D:\\Photo\\android\\";
+	
 	private Socket socket;
 	private BufferedReader in = null;
 	private BufferedWriter out = null;
@@ -38,16 +40,37 @@ public class TCPServerSideThread implements Runnable {
 
 		try {
 
-			System.out.println("ServerThreadStarted");
+			Class.forName("com.mysql.jdbc.Driver");
+			String connectionString = "jdbc:mysql://localhost:3307/gmapserver?"
+					+ "user=root&password=root";
 			
 			// receive requestID
 			String messageType = in.readLine();
-			System.out.println("message from android   "
-					+ Integer.parseInt(messageType));
+			System.out.println("message from android  " + Integer.parseInt(messageType));
 
 			if (messageType.equals("1")) {
 
-				saveBitmap();
+				int crtInfoPointId = Integer.parseInt(in.readLine());
+				
+				Connection con = DriverManager.getConnection(connectionString);
+				PreparedStatement prepSt = con
+						.prepareStatement("INSERT INTO images (infopointId) values (?)");
+				prepSt.setInt(1, crtInfoPointId);
+				prepSt.execute();
+
+				prepSt = con.prepareStatement("SELECT id FROM images " +
+						"ORDER BY id DESC LIMIT 1");
+				ResultSet imgResultSet = prepSt.executeQuery();
+				int imgID;
+				if (imgResultSet.next()) {
+					imgID = imgResultSet.getInt("id");
+					System.out.println("getint  " + imgResultSet.getInt("id"));
+				} else {
+					imgID = -1;
+					System.out.println("getint  -1");
+				}
+				
+				saveBitmap(imgID);
 			} else if (messageType.equals("2")) {
 
 				int clientId = Integer.parseInt(in.readLine());
@@ -58,10 +81,7 @@ public class TCPServerSideThread implements Runnable {
 				String time = in.readLine();
 				System.out.println(latitude + "  " + longitude);
 
-				Class.forName("com.mysql.jdbc.Driver");
-				Connection con = DriverManager
-						.getConnection("jdbc:mysql://localhost:3306/gmapserver?"
-								+ "user=root&password=root");
+				Connection con = DriverManager.getConnection(connectionString);
 				PreparedStatement prepSt = con
 						.prepareStatement("INSERT INTO infopoints"
 								+ " (clientId, name, description, latitude, longitude, time) "
@@ -96,10 +116,7 @@ public class TCPServerSideThread implements Runnable {
 				String passwd = in.readLine();
 				System.out.println(userName + "  " + passwd);
 
-				Class.forName("com.mysql.jdbc.Driver");
-				Connection con = DriverManager
-						.getConnection("jdbc:mysql://localhost/gmapserver?"
-								+ "user=root&password=root");
+				Connection con = DriverManager.getConnection(connectionString);
 				PreparedStatement prepSt = con
 						.prepareStatement("SELECT id FROM gmapserver.clients"
 								+ " where (username = ?) AND (password = ?)");
@@ -125,10 +142,7 @@ public class TCPServerSideThread implements Runnable {
 				String passwd = in.readLine();
 				System.out.println(userName + "  " + passwd);
 
-				Class.forName("com.mysql.jdbc.Driver");
-				Connection con = DriverManager
-						.getConnection("jdbc:mysql://localhost/gmapserver?"
-								+ "user=root&password=root");
+				Connection con = DriverManager.getConnection(connectionString);
 				PreparedStatement prepSt = con
 						.prepareStatement("INSERT INTO clients"
 								+ " (username, password) values (?, ?)");
@@ -147,14 +161,14 @@ public class TCPServerSideThread implements Runnable {
 
 	}
 
-	private void saveBitmap() {
+	private void saveBitmap(int imageID) {
 
 		// receive bitmap
 		InputStream in_bmp;
 		OutputStream out_bmp;
 		try {
 			in_bmp = socket.getInputStream();
-			out_bmp = new FileOutputStream("filename.bmp");
+			out_bmp = new FileOutputStream(imageID + ".bmp");
 
 			final byte[] buffer = new byte[1024];
 			int read = -1;
